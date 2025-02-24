@@ -1,7 +1,7 @@
 from huggingface_hub import login
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-import config
+from . import config
 
 # Authenticate
 login(config.HF_TOKEN)

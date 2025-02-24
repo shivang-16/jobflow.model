@@ -3,7 +3,15 @@ from model_manager import load_model
 
 app = Flask(__name__)
 
-@app.route("/<model_version>/predict", methods=["POST"])
+@app.route("/", methods=["GET"])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "message": "Model Server is running"
+    })
+
+@app.route("/predict/<model_version>", methods=["POST"])
 def predict(model_version):
     """Handles requests dynamically based on model version"""
     model_module = load_model(model_version)
@@ -19,4 +27,4 @@ def predict(model_version):
     return jsonify({"response": response})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)

@@ -1,0 +1,54 @@
+name: JobFlow-Model-Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo "${{ secrets.PROD_ENV }}" > .env
+
+      - name: Login to docker hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build docker image
+        run: docker build -t shivangm16/jobflow-model:latest .
+
+      - name: Publish image to docker hub
+        run: docker push shivangm16/jobflow-model:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Stop existing container
+        run: |
+          docker stop jobflow-model || true
+          docker rm jobflow-model || true
+
+      - name: Pull image from docker hub
+        run: docker pull shivangm16/jobflow-model:latest
+
+      - name: Start container
+        run: |
+          docker run -d \
+            --name jobflow-model \
+            -p 5001:5001 \
+            --restart unless-stopped \
+            shivangm16/jobflow-model:latest
+
+      - name: Health check
+        run: |
+          sleep 10
+          curl http://localhost:5001/ || exit 1
