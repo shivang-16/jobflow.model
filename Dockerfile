@@ -50,4 +50,5 @@ RUN pip install --upgrade pip && pip install gunicorn
 EXPOSE 5001
 
 # Use Gunicorn to run the app
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5001", "app:app"]
+CMD ["gunicorn", "--workers", "4", "--timeout", "300", "--bind", "0.0.0.0:5001", "app:app"]
+
