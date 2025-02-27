@@ -55,6 +55,7 @@ You are a job search assistant, Job-GPT, with deep expertise in job market analy
 ### Response:
 """
     try:
+        print("genearting response", prompt)
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
         with torch.no_grad():
             output = model.generate(
@@ -66,6 +67,7 @@ You are a job search assistant, Job-GPT, with deep expertise in job market analy
                 do_sample=True,
             )
         response = tokenizer.decode(output[0], skip_special_tokens=True)
+        print(response, "here is you response")
         return response
     except Exception as e:
         print(f"Error generating response: {str(e)}")

@@ -24,6 +24,7 @@ def predict(model_version):
         return jsonify({"error": "Missing question"}), 400
 
     response = model_module.generate_response(question)
+    print(response, "response in app.py")
     return jsonify({"response": response})
 
 if __name__ == "__main__":
