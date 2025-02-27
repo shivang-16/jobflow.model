@@ -1,5 +1,6 @@
 from huggingface_hub import login
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from threading import Thread
 import torch
 from . import config
 
@@ -55,20 +56,34 @@ You are a job search assistant, Job-GPT, with deep expertise in job market analy
 ### Response:
 """
     try:
-        print("genearting response", prompt)
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
-        with torch.no_grad():
-            output = model.generate(
-                input_ids=inputs.input_ids,
-                attention_mask=inputs.attention_mask,
-                max_new_tokens=512,
-                temperature=0.7,
-                top_p=0.9,
-                do_sample=True,
-            )
-        response = tokenizer.decode(output[0], skip_special_tokens=True)
-        print(response, "here is you response")
-        return response
+        
+        # Create a streamer
+        streamer = TextIteratorStreamer(tokenizer, skip_special_tokens=True)
+        
+        # Create generation kwargs
+        generation_kwargs = dict(
+            input_ids=inputs.input_ids,
+            attention_mask=inputs.attention_mask,
+            max_new_tokens=512,
+            temperature=0.7,
+            top_p=0.9,
+            do_sample=True,
+            streamer=streamer
+        )
+
+        # Create a thread to run the generation
+        thread = Thread(target=model.generate, kwargs=generation_kwargs)
+        thread.start()
+
+        # Yield tokens as they're generated
+        generated_text = ""
+        for new_text in streamer:
+            generated_text += new_text
+            yield new_text
+
+        thread.join()
+        return generated_text
     except Exception as e:
         print(f"Error generating response: {str(e)}")
         return str(e)
