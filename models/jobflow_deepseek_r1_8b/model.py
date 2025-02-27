@@ -56,6 +56,7 @@ You are a job search assistant, Job-GPT, with deep expertise in job market analy
 ### Response:
 """
     try:
+        print("Generating response...", prompt)
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
         
         # Create a streamer
@@ -83,6 +84,7 @@ You are a job search assistant, Job-GPT, with deep expertise in job market analy
             yield new_text
 
         thread.join()
+        print(generated_text)
         return generated_text
     except Exception as e:
         print(f"Error generating response: {str(e)}")
